@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas Project — Learn the Flags of the World</title>
+<meta name="description" content="Learn the national flags of all 197 sovereign nations through flashcards, quizzes, and a world map placement game." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,300;1,9..144,600&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4efe6;
+  --bg-deep: #ebe3d3;
+  --ink: #1a1612;
+  --ink-soft: #5c554a;
+  --accent: #c8462c;
+  --accent-soft: #e88a72;
+  --gold: #c89a3a;
+  --line: #1a1612;
+  --ocean: #d9d0bd;
+  --grid: #b8ad97;
+  --land: #1a1612;
+  --correct: #3f7d4e;
+  --wrong: #c8462c;
+  --card: #fffbf3;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: 'Inter Tight', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root { min-height: 100vh; }
+
+.app-root {
+  background:
+    radial-gradient(ellipse at top left, rgba(200,154,58,0.08), transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(200,70,44,0.06), transparent 50%),
+    var(--bg);
+  padding: 24px 16px;
+  min-height: 100vh;
+}
+
+/* Loading screen while React boots */
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg);
+  z-index: 9999;
+  transition: opacity 0.4s;
+}
+.boot-screen.hidden { opacity: 0; pointer-events: none; }
+.boot-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 28px;
+  color: var(--ink);
+}
+.boot-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+/* ======= HOME ======= */
+.home { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+.home-inner { position: relative; }
+.title-block { margin-bottom: 56px; text-align: center; }
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--ink-soft);
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+.title {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+  font-size: clamp(48px, 9vw, 112px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+.title-line { display: block; }
+.title-italic {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  padding-left: 0.4em;
+}
+.subtitle {
+  margin-top: 28px;
+  font-size: 17px;
+  color: var(--ink-soft);
+  max-width: 460px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  margin-top: 40px;
+}
+.mode-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 32px 28px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s;
+  overflow: hidden;
+}
+.mode-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: translateY(101%);
+  transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
+  z-index: 0;
+}
+.mode-card:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 var(--ink); }
+.mode-card:hover::before { transform: translateY(0); }
+.mode-card:hover .mode-num,
+.mode-card:hover .mode-name,
+.mode-card:hover .mode-desc,
+.mode-card:hover .mode-arrow { color: var(--card); }
+.mode-card > * { position: relative; z-index: 1; transition: color 0.3s; }
+.mode-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+  letter-spacing: 0.1em;
+}
+.mode-name {
+  font-family: 'Fraunces', serif;
+  font-size: 30px;
+  font-weight: 400;
+  font-style: italic;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+.mode-desc {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin-bottom: 32px;
+}
+.mode-arrow { font-size: 24px; color: var(--ink); }
+.footer-line {
+  margin-top: 56px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-soft);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+/* ======= MODE SCREENS ======= */
+.mode-screen { max-width: 920px; margin: 0 auto; padding: 8px 12px 40px; }
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 4px 24px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+.back-btn {
+  background: none;
+  border: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  padding: 6px 0;
+}
+.back-btn:hover { color: var(--accent); }
+.topbar-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 22px;
+  flex: 1;
+  text-align: center;
+}
+.topbar-spacer { width: 60px; }
+
+/* ======= FILTER ======= */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px dashed var(--grid);
+}
+.filter-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-right: 4px;
+}
+.chip {
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 6px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.chip:hover { background: var(--ink); color: var(--bg); }
+.chip-active { background: var(--ink); color: var(--bg); }
+
+/* ======= FLASHCARDS ======= */
+.progress-row { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+.progress-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-deep);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+.card-stage { perspective: 1500px; margin: 20px auto 32px; max-width: 520px; }
+.flashcard {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(.2,.8,.2,1);
+  cursor: pointer;
+}
+.flashcard.flipped { transform: rotateY(180deg); }
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: 4px 4px 0 var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.flashcard-back { transform: rotateY(180deg); }
+.flag-img {
+  max-width: 85%;
+  max-height: 75%;
+  object-fit: contain;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.card-hint {
+  position: absolute;
+  bottom: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+.card-region {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.card-country {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(28px, 6vw, 44px);
+  font-weight: 400;
+  font-style: italic;
+  text-align: center;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.controls-secondary { margin-top: 16px; text-align: center; }
+.btn-primary, .btn-ghost {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 14px;
+  padding: 12px 22px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--ink); color: var(--bg); }
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+.btn-ghost { background: transparent; color: var(--ink); }
+.btn-ghost:hover { background: var(--ink); color: var(--bg); }
+.link-btn {
+  background: none;
+  border: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.link-btn:hover { color: var(--accent); }
+
+/* ======= QUIZ ======= */
+.score-row {
+  display: flex;
+  gap: 28px;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.score-stat { text-align: left; }
+.score-num {
+  font-family: 'Fraunces', serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1;
+}
+.score-num .unit { font-size: 14px; color: var(--ink-soft); margin-left: 2px; }
+.score-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.score-stat-accent .score-num { color: var(--accent); }
+.quiz-stage { text-align: center; }
+.quiz-flag-wrap {
+  display: inline-block;
+  margin: 12px 0 28px;
+  padding: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.quiz-flag { display: block; max-width: 320px; width: 100%; height: auto; }
+.quiz-prompt {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 22px;
+  margin-bottom: 28px;
+  color: var(--ink);
+}
+.quiz-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.quiz-opt {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 16px 20px;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--ink);
+  transition: all 0.2s;
+  text-align: left;
+}
+.quiz-opt:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--bg);
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt-correct { background: var(--correct) !important; color: var(--card) !important; border-color: var(--correct) !important; }
+.quiz-opt-wrong { background: var(--wrong) !important; color: var(--card) !important; border-color: var(--wrong) !important; }
+.quiz-opt-dim { opacity: 0.35; }
+
+/* ======= MAP ======= */
+.map-header {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.map-prompt-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 10px 16px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.map-prompt-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.map-flag { width: 56px; height: auto; display: block; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+.map-prompt-name { font-family: 'Fraunces', serif; font-style: italic; font-size: 22px; }
+.map-stats { display: flex; gap: 24px; align-items: flex-end; }
+.map-wrap {
+  border: 1px solid var(--line);
+  background: var(--ocean);
+  box-shadow: 4px 4px 0 var(--ink);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.world-map { display: block; width: 100%; cursor: crosshair; }
+.land-masses path { fill: var(--land); stroke: var(--land); stroke-width: 0.5; }
+.map-result {
+  padding: 14px 20px;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.map-result-correct { background: var(--correct); color: var(--card); border-color: var(--correct); }
+.map-result-wrong { background: var(--card); color: var(--ink); }
+.map-result-msg { font-family: 'Fraunces', serif; font-style: italic; font-size: 18px; }
+.map-result-dist {
+  font-family: 'JetBrains Mono', monospace;
+  font-style: normal;
+  font-size: 13px;
+  opacity: 0.85;
+  margin-left: 8px;
+}
+.map-help {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 600px) {
+  .topbar-title { font-size: 18px; }
+  .score-row { gap: 18px; }
+  .score-num { font-size: 24px; }
+  .map-prompt-name { font-size: 18px; }
+  .map-flag { width: 44px; }
+  .map-header { gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div id="boot" class="boot-screen">
+  <div class="boot-title">Atlas Project</div>
+  <div class="boot-sub">loading the world…</div>
+</div>
+
+<div id="root"></div>
+
+<!-- React 18 + Babel via CDN -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo, useRef } = React;
+
+// ============================================================
+// COUNTRY DATA — 197 sovereign nations
+// ============================================================
+const COUNTRIES = [
+  { name: "Afghanistan", code: "AF", region: "Asia", lat: 33.93, lng: 67.71 },
+  { name: "Albania", code: "AL", region: "Europe", lat: 41.15, lng: 20.17 },
+  { name: "Algeria", code: "DZ", region: "Africa", lat: 28.03, lng: 1.66 },
+  { name: "Andorra", code: "AD", region: "Europe", lat: 42.51, lng: 1.52 },
+  { name: "Angola", code: "AO", region: "Africa", lat: -11.20, lng: 17.87 },
+  { name: "Antigua and Barbuda", code: "AG", region: "Americas", lat: 17.06, lng: -61.80 },
+  { name: "Argentina", code: "AR", region: "Americas", lat: -38.42, lng: -63.62 },
+  { name: "Armenia", code: "AM", region: "Asia", lat: 40.07, lng: 45.04 },
+  { name: "Australia", code: "AU", region: "Oceania", lat: -25.27, lng: 133.78 },
+  { name: "Austria", code: "AT", region: "Europe", lat: 47.52, lng: 14.55 },
+  { name: "Azerbaijan", code: "AZ", region: "Asia", lat: 40.14, lng: 47.58 },
+  { name: "Bahamas", code: "BS", region: "Americas", lat: 25.03, lng: -77.40 },
+  { name: "Bahrain", code: "BH", region: "Asia", lat: 25.93, lng: 50.64 },
+  { name: "Bangladesh", code: "BD", region: "Asia", lat: 23.68, lng: 90.36 },
+  { name: "Barbados", code: "BB", region: "Americas", lat: 13.19, lng: -59.54 },
+  { name: "Belarus", code: "BY", region: "Europe", lat: 53.71, lng: 27.95 },
+  { name: "Belgium", code: "BE", region: "Europe", lat: 50.50, lng: 4.47 },
+  { name: "Belize", code: "BZ", region: "Americas", lat: 17.19, lng: -88.50 },
+  { name: "Benin", code: "BJ", region: "Africa", lat: 9.31, lng: 2.32 },
+  { name: "Bhutan", code: "BT", region: "Asia", lat: 27.51, lng: 90.43 },
+  { name: "Bolivia", code: "BO", region: "Americas", lat: -16.29, lng: -63.59 },
+  { name: "Bosnia and Herzegovina", code: "BA", region: "Europe", lat: 43.92, lng: 17.68 },
+  { name: "Botswana", code: "BW", region: "Africa", lat: -22.33, lng: 24.68 },
+  { name: "Brazil", code: "BR", region: "Americas", lat: -14.24, lng: -51.93 },
+  { name: "Brunei", code: "BN", region: "Asia", lat: 4.54, lng: 114.73 },
+  { name: "Bulgaria", code: "BG", region: "Europe", lat: 42.73, lng: 25.49 },
+  { name: "Burkina Faso", code: "BF", region: "Africa", lat: 12.24, lng: -1.56 },
+  { name: "Burundi", code: "BI", region: "Africa", lat: -3.37, lng: 29.92 },
+  { name: "Cabo Verde", code: "CV", region: "Africa", lat: 16.54, lng: -23.05 },
+  { name: "Cambodia", code: "KH", region: "Asia", lat: 12.57, lng: 104.99 },
+  { name: "Cameroon", code: "CM", region: "Africa", lat: 7.37, lng: 12.35 },
+  { name: "Canada", code: "CA", region: "Americas", lat: 56.13, lng: -106.35 },
+  { name: "Central African Republic", code: "CF", region: "Africa", lat: 6.61, lng: 20.94 },
+  { name: "Chad", code: "TD", region: "Africa", lat: 15.45, lng: 18.73 },
+  { name: "Chile", code: "CL", region: "Americas", lat: -35.68, lng: -71.54 },
+  { name: "China", code: "CN", region: "Asia", lat: 35.86, lng: 104.20 },
+  { name: "Colombia", code: "CO", region: "Americas", lat: 4.57, lng: -74.30 },
+  { name: "Comoros", code: "KM", region: "Africa", lat: -11.88, lng: 43.87 },
+  { name: "Congo (DRC)", code: "CD", region: "Africa", lat: -4.04, lng: 21.76 },
+  { name: "Congo (Republic)", code: "CG", region: "Africa", lat: -0.23, lng: 15.83 },
+  { name: "Costa Rica", code: "CR", region: "Americas", lat: 9.75, lng: -83.75 },
+  { name: "Côte d'Ivoire", code: "CI", region: "Africa", lat: 7.54, lng: -5.55 },
+  { name: "Croatia", code: "HR", region: "Europe", lat: 45.10, lng: 15.20 },
+  { name: "Cuba", code: "CU", region: "Americas", lat: 21.52, lng: -77.78 },
+  { name: "Cyprus", code: "CY", region: "Europe", lat: 35.13, lng: 33.43 },
+  { name: "Czech Republic", code: "CZ", region: "Europe", lat: 49.82, lng: 15.47 },
+  { name: "Denmark", code: "DK", region: "Europe", lat: 56.26, lng: 9.50 },
+  { name: "Djibouti", code: "DJ", region: "Africa", lat: 11.83, lng: 42.59 },
+  { name: "Dominica", code: "DM", region: "Americas", lat: 15.41, lng: -61.37 },
+  { name: "Dominican Republic", code: "DO", region: "Americas", lat: 18.74, lng: -70.16 },
+  { name: "Ecuador", code: "EC", region: "Americas", lat: -1.83, lng: -78.18 },
+  { name: "Egypt", code: "EG", region: "Africa", lat: 26.82, lng: 30.80 },
+  { name: "El Salvador", code: "SV", region: "Americas", lat: 13.79, lng: -88.90 },
+  { name: "Equatorial Guinea", code: "GQ", region: "Africa", lat: 1.65, lng: 10.27 },
+  { name: "Eritrea", code: "ER", region: "Africa", lat: 15.18, lng: 39.78 },
+  { name: "Estonia", code: "EE", region: "Europe", lat: 58.60, lng: 25.01 },
+  { name: "Eswatini", code: "SZ", region: "Africa", lat: -26.52, lng: 31.47 },
+  { name: "Ethiopia", code: "ET", region: "Africa", lat: 9.15, lng: 40.49 },
+  { name: "Fiji", code: "FJ", region: "Oceania", lat: -17.71, lng: 178.07 },
+  { name: "Finland", code: "FI", region: "Europe", lat: 61.92, lng: 25.75 },
+  { name: "France", code: "FR", region: "Europe", lat: 46.23, lng: 2.21 },
+  { name: "Gabon", code: "GA", region: "Africa", lat: -0.80, lng: 11.61 },
+  { name: "Gambia", code: "GM", region: "Africa", lat: 13.44, lng: -15.31 },
+  { name: "Georgia", code: "GE", region: "Asia", lat: 42.32, lng: 43.36 },
+  { name: "Germany", code: "DE", region: "Europe", lat: 51.17, lng: 10.45 },
+  { name: "Ghana", code: "GH", region: "Africa", lat: 7.95, lng: -1.02 },
+  { name: "Greece", code: "GR", region: "Europe", lat: 39.07, lng: 21.82 },
+  { name: "Grenada", code: "GD", region: "Americas", lat: 12.26, lng: -61.60 },
+  { name: "Guatemala", code: "GT", region: "Americas", lat: 15.78, lng: -90.23 },
+  { name: "Guinea", code: "GN", region: "Africa", lat: 9.95, lng: -9.70 },
+  { name: "Guinea-Bissau", code: "GW", region: "Africa", lat: 11.80, lng: -15.18 },
+  { name: "Guyana", code: "GY", region: "Americas", lat: 4.86, lng: -58.93 },
+  { name: "Haiti", code: "HT", region: "Americas", lat: 18.97, lng: -72.29 },
+  { name: "Honduras", code: "HN", region: "Americas", lat: 15.20, lng: -86.24 },
+  { name: "Hungary", code: "HU", region: "Europe", lat: 47.16, lng: 19.50 },
+  { name: "Iceland", code: "IS", region: "Europe", lat: 64.96, lng: -19.02 },
+  { name: "India", code: "IN", region: "Asia", lat: 20.59, lng: 78.96 },
+  { name: "Indonesia", code: "ID", region: "Asia", lat: -0.79, lng: 113.92 },
+  { name: "Iran", code: "IR", region: "Asia", lat: 32.43, lng: 53.69 },
+  { name: "Iraq", code: "IQ", region: "Asia", lat: 33.22, lng: 43.68 },
+  { name: "Ireland", code: "IE", region: "Europe", lat: 53.41, lng: -8.24 },
+  { name: "Israel", code: "IL", region: "Asia", lat: 31.05, lng: 34.85 },
+  { name: "Italy", code: "IT", region: "Europe", lat: 41.87, lng: 12.57 },
+  { name: "Jamaica", code: "JM", region: "Americas", lat: 18.11, lng: -77.30 },
+  { name: "Japan", code: "JP", region: "Asia", lat: 36.20, lng: 138.25 },
+  { name: "Jordan", code: "JO", region: "Asia", lat: 30.59, lng: 36.24 },
+  { name: "Kazakhstan", code: "KZ", region: "Asia", lat: 48.02, lng: 66.92 },
+  { name: "Kenya", code: "KE", region: "Africa", lat: -0.02, lng: 37.91 },
+  { name: "Kiribati", code: "KI", region: "Oceania", lat: -3.37, lng: -168.73 },
+  { name: "Kosovo", code: "XK", region: "Europe", lat: 42.60, lng: 20.90 },
+  { name: "Kuwait", code: "KW", region: "Asia", lat: 29.31, lng: 47.48 },
+  { name: "Kyrgyzstan", code: "KG", region: "Asia", lat: 41.20, lng: 74.77 },
+  { name: "Laos", code: "LA", region: "Asia", lat: 19.86, lng: 102.50 },
+  { name: "Latvia", code: "LV", region: "Europe", lat: 56.88, lng: 24.60 },
+  { name: "Lebanon", code: "LB", region: "Asia", lat: 33.85, lng: 35.86 },
+  { name: "Lesotho", code: "LS", region: "Africa", lat: -29.61, lng: 28.23 },
+  { name: "Liberia", code: "LR", region: "Africa", lat: 6.43, lng: -9.43 },
+  { name: "Libya", code: "LY", region: "Africa", lat: 26.34, lng: 17.23 },
+  { name: "Liechtenstein", code: "LI", region: "Europe", lat: 47.17, lng: 9.56 },
+  { name: "Lithuania", code: "LT", region: "Europe", lat: 55.17, lng: 23.88 },
+  { name: "Luxembourg", code: "LU", region: "Europe", lat: 49.82, lng: 6.13 },
+  { name: "Madagascar", code: "MG", region: "Africa", lat: -18.77, lng: 46.87 },
+  { name: "Malawi", code: "MW", region: "Africa", lat: -13.25, lng: 34.30 },
+  { name: "Malaysia", code: "MY", region: "Asia", lat: 4.21, lng: 101.98 },
+  { name: "Maldives", code: "MV", region: "Asia", lat: 3.20, lng: 73.22 },
+  { name: "Mali", code: "ML", region: "Africa", lat: 17.57, lng: -3.99 },
+  { name: "Malta", code: "MT", region: "Europe", lat: 35.94, lng: 14.38 },
+  { name: "Marshall Islands", code: "MH", region: "Oceania", lat: 7.13, lng: 171.18 },
+  { name: "Mauritania", code: "MR", region: "Africa", lat: 21.01, lng: -10.94 },
+  { name: "Mauritius", code: "MU", region: "Africa", lat: -20.35, lng: 57.55 },
+  { name: "Mexico", code: "MX", region: "Americas", lat: 23.63, lng: -102.55 },
+  { name: "Micronesia", code: "FM", region: "Oceania", lat: 7.43, lng: 150.55 },
+  { name: "Moldova", code: "MD", region: "Europe", lat: 47.41, lng: 28.37 },
+  { name: "Monaco", code: "MC", region: "Europe", lat: 43.75, lng: 7.41 },
+  { name: "Mongolia", code: "MN", region: "Asia", lat: 46.86, lng: 103.85 },
+  { name: "Montenegro", code: "ME", region: "Europe", lat: 42.71, lng: 19.37 },
+  { name: "Morocco", code: "MA", region: "Africa", lat: 31.79, lng: -7.09 },
+  { name: "Mozambique", code: "MZ", region: "Africa", lat: -18.67, lng: 35.53 },
+  { name: "Myanmar", code: "MM", region: "Asia", lat: 21.91, lng: 95.96 },
+  { name: "Namibia", code: "NA", region: "Africa", lat: -22.96, lng: 18.49 },
+  { name: "Nauru", code: "NR", region: "Oceania", lat: -0.52, lng: 166.93 },
+  { name: "Nepal", code: "NP", region: "Asia", lat: 28.39, lng: 84.12 },
+  { name: "Netherlands", code: "NL", region: "Europe", lat: 52.13, lng: 5.29 },
+  { name: "New Zealand", code: "NZ", region: "Oceania", lat: -40.90, lng: 174.89 },
+  { name: "Nicaragua", code: "NI", region: "Americas", lat: 12.87, lng: -85.21 },
+  { name: "Niger", code: "NE", region: "Africa", lat: 17.61, lng: 8.08 },
+  { name: "Nigeria", code: "NG", region: "Africa", lat: 9.08, lng: 8.68 },
+  { name: "North Korea", code: "KP", region: "Asia", lat: 40.34, lng: 127.51 },
+  { name: "North Macedonia", code: "MK", region: "Europe", lat: 41.61, lng: 21.75 },
+  { name: "Norway", code: "NO", region: "Europe", lat: 60.47, lng: 8.47 },
+  { name: "Oman", code: "OM", region: "Asia", lat: 21.51, lng: 55.92 },
+  { name: "Pakistan", code: "PK", region: "Asia", lat: 30.38, lng: 69.35 },
+  { name: "Palau", code: "PW", region: "Oceania", lat: 7.51, lng: 134.58 },
+  { name: "Palestine", code: "PS", region: "Asia", lat: 31.95, lng: 35.23 },
+  { name: "Panama", code: "PA", region: "Americas", lat: 8.54, lng: -80.78 },
+  { name: "Papua New Guinea", code: "PG", region: "Oceania", lat: -6.31, lng: 143.96 },
+  { name: "Paraguay", code: "PY", region: "Americas", lat: -23.44, lng: -58.44 },
+  { name: "Peru", code: "PE", region: "Americas", lat: -9.19, lng: -75.02 },
+  { name: "Philippines", code: "PH", region: "Asia", lat: 12.88, lng: 121.77 },
+  { name: "Poland", code: "PL", region: "Europe", lat: 51.92, lng: 19.15 },
+  { name: "Portugal", code: "PT", region: "Europe", lat: 39.40, lng: -8.22 },
+  { name: "Qatar", code: "QA", region: "Asia", lat: 25.35, lng: 51.18 },
+  { name: "Romania", code: "RO", region: "Europe", lat: 45.94, lng: 24.97 },
+  { name: "Russia", code: "RU", region: "Europe", lat: 61.52, lng: 105.32 },
+  { name: "Rwanda", code: "RW", region: "Africa", lat: -1.94, lng: 29.87 },
+  { name: "Saint Kitts and Nevis", code: "KN", region: "Americas", lat: 17.36, lng: -62.78 },
+  { name: "Saint Lucia", code: "LC", region: "Americas", lat: 13.91, lng: -60.98 },
+  { name: "Saint Vincent and the Grenadines", code: "VC", region: "Americas", lat: 12.98, lng: -61.29 },
+  { name: "Samoa", code: "WS", region: "Oceania", lat: -13.76, lng: -172.10 },
+  { name: "San Marino", code: "SM", region: "Europe", lat: 43.94, lng: 12.46 },
+  { name: "São Tomé and Príncipe", code: "ST", region: "Africa", lat: 0.19, lng: 6.61 },
+  { name: "Saudi Arabia", code: "SA", region: "Asia", lat: 23.89, lng: 45.08 },
+  { name: "Senegal", code: "SN", region: "Africa", lat: 14.50, lng: -14.45 },
+  { name: "Serbia", code: "RS", region: "Europe", lat: 44.02, lng: 21.01 },
+  { name: "Seychelles", code: "SC", region: "Africa", lat: -4.68, lng: 55.49 },
+  { name: "Sierra Leone", code: "SL", region: "Africa", lat: 8.46, lng: -11.78 },
+  { name: "Singapore", code: "SG", region: "Asia", lat: 1.35, lng: 103.82 },
+  { name: "Slovakia", code: "SK", region: "Europe", lat: 48.67, lng: 19.70 },
+  { name: "Slovenia", code: "SI", region: "Europe", lat: 46.15, lng: 14.99 },
+  { name: "Solomon Islands", code: "SB", region: "Oceania", lat: -9.65, lng: 160.16 },
+  { name: "Somalia", code: "SO", region: "Africa", lat: 5.15, lng: 46.20 },
+  { name: "South Africa", code: "ZA", region: "Africa", lat: -30.56, lng: 22.94 },
+  { name: "South Korea", code: "KR", region: "Asia", lat: 35.91, lng: 127.77 },
+  { name: "South Sudan", code: "SS", region: "Africa", lat: 6.88, lng: 31.31 },
+  { name: "Spain", code: "ES", region: "Europe", lat: 40.46, lng: -3.75 },
+  { name: "Sri Lanka", code: "LK", region: "Asia", lat: 7.87, lng: 80.77 },
+  { name: "Sudan", code: "SD", region: "Africa", lat: 12.86, lng: 30.22 },
+  { name: "Suriname", code: "SR", region: "Americas", lat: 3.92, lng: -56.03 },
+  { name: "Sweden", code: "SE", region: "Europe", lat: 60.13, lng: 18.64 },
+  { name: "Switzerland", code: "CH", region: "Europe", lat: 46.82, lng: 8.23 },
+  { name: "Syria", code: "SY", region: "Asia", lat: 34.80, lng: 38.99 },
+  { name: "Taiwan", code: "TW", region: "Asia", lat: 23.70, lng: 120.96 },
+  { name: "Tajikistan", code: "TJ", region: "Asia", lat: 38.86, lng: 71.28 },
+  { name: "Tanzania", code: "TZ", region: "Africa", lat: -6.37, lng: 34.89 },
+  { name: "Thailand", code: "TH", region: "Asia", lat: 15.87, lng: 100.99 },
+  { name: "Timor-Leste", code: "TL", region: "Asia", lat: -8.87, lng: 125.73 },
+  { name: "Togo", code: "TG", region: "Africa", lat: 8.62, lng: 0.82 },
+  { name: "Tonga", code: "TO", region: "Oceania", lat: -21.18, lng: -175.20 },
+  { name: "Trinidad and Tobago", code: "TT", region: "Americas", lat: 10.69, lng: -61.22 },
+  { name: "Tunisia", code: "TN", region: "Africa", lat: 33.89, lng: 9.54 },
+  { name: "Turkey", code: "TR", region: "Asia", lat: 38.96, lng: 35.24 },
+  { name: "Turkmenistan", code: "TM", region: "Asia", lat: 38.97, lng: 59.56 },
+  { name: "Tuvalu", code: "TV", region: "Oceania", lat: -7.11, lng: 177.65 },
+  { name: "Uganda", code: "UG", region: "Africa", lat: 1.37, lng: 32.29 },
+  { name: "Ukraine", code: "UA", region: "Europe", lat: 48.38, lng: 31.17 },
+  { name: "United Arab Emirates", code: "AE", region: "Asia", lat: 23.42, lng: 53.85 },
+  { name: "United Kingdom", code: "GB", region: "Europe", lat: 55.38, lng: -3.44 },
+  { name: "United States", code: "US", region: "Americas", lat: 37.09, lng: -95.71 },
+  { name: "Uruguay", code: "UY", region: "Americas", lat: -32.52, lng: -55.77 },
+  { name: "Uzbekistan", code: "UZ", region: "Asia", lat: 41.38, lng: 64.59 },
+  { name: "Vanuatu", code: "VU", region: "Oceania", lat: -15.38, lng: 166.96 },
+  { name: "Vatican City", code: "VA", region: "Europe", lat: 41.90, lng: 12.45 },
+  { name: "Venezuela", code: "VE", region: "Americas", lat: 6.42, lng: -66.59 },
+  { name: "Vietnam", code: "VN", region: "Asia", lat: 14.06, lng: 108.28 },
+  { name: "Yemen", code: "YE", region: "Asia", lat: 15.55, lng: 48.52 },
+  { name: "Zambia", code: "ZM", region: "Africa", lat: -13.13, lng: 27.85 },
+  { name: "Zimbabwe", code: "ZW", region: "Africa", lat: -19.02, lng: 29.15 },
+];
+
+const REGIONS = ["All", "Africa", "Americas", "Asia", "Europe", "Oceania"];
+
+const flagUrl = (code) => `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+const flagUrlSmall = (code) => `https://flagcdn.com/w160/${code.toLowerCase()}.png`;
+
+const shuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+const project = (lat, lng) => {
+  const x = (lng + 180) * (1000 / 360);
+  const y = (90 - lat) * (500 / 180);
+  return { x, y };
+};
+
+function Home({ onPick }) {
+  return (
+    <div className="home">
+      <div className="home-inner">
+        <div className="title-block">
+          <div className="eyebrow">— Atlas Project —</div>
+          <h1 className="title">
+            <span className="title-line">One Hundred</span>
+            <span className="title-line title-italic">Ninety-Seven</span>
+            <span className="title-line">Flags.</span>
+          </h1>
+          <p className="subtitle">A study of the world's sovereign banners. Choose your method.</p>
+        </div>
+
+        <div className="mode-grid">
+          <button className="mode-card" onClick={() => onPick('flashcard')}>
+            <div className="mode-num">01</div>
+            <div className="mode-name">Flashcards</div>
+            <div className="mode-desc">Flip a card. Flag on one face, nation on the other. Mark what you know.</div>
+            <div className="mode-arrow">→</div>
+          </button>
+          <button className="mode-card" onClick={() => onPick('quiz')}>
+            <div className="mode-num">02</div>
+            <div className="mode-name">Quick Quiz</div>
+            <div className="mode-desc">A flag appears. Four choices. Build your streak.</div>
+            <div className="mode-arrow">→</div>
+          </button>
+          <button className="mode-card" onClick={() => onPick('map')}>
+            <div className="mode-num">03</div>
+            <div className="mode-name">World Map</div>
+            <div className="mode-desc">Drop the flag on the nation it belongs to.</div>
+            <div className="mode-arrow">→</div>
+          </button>
+        </div>
+
+        <div className="footer-line">197 nations · 6 inhabited continents · one curious mind</div>
+      </div>
+    </div>
+  );
+}
+
+function Flashcards({ onHome, region, setRegion }) {
+  const pool = useMemo(() =>
+    region === "All" ? COUNTRIES : COUNTRIES.filter(c => c.region === region),
+    [region]
+  );
+  const [deck, setDeck] = useState(() => shuffle(pool));
+  const [idx, setIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [known, setKnown] = useState(new Set());
+
+  useEffect(() => {
+    setDeck(shuffle(pool));
+    setIdx(0);
+    setFlipped(false);
+    setKnown(new Set());
+  }, [pool]);
+
+  const current = deck[idx];
+  const progress = ((idx + 1) / deck.length) * 100;
+
+  const next = () => {
+    setFlipped(false);
+    setTimeout(() => setIdx((i) => (i + 1) % deck.length), 150);
+  };
+  const prev = () => {
+    setFlipped(false);
+    setTimeout(() => setIdx((i) => (i - 1 + deck.length) % deck.length), 150);
+  };
+  const markKnown = () => {
+    setKnown((s) => new Set(s).add(current.code));
+    next();
+  };
+  const reshuffle = () => {
+    setDeck(shuffle(pool));
+    setIdx(0);
+    setFlipped(false);
+  };
+
+  if (!current) return null;
+
+  return (
+    <div className="mode-screen">
+      <TopBar onHome={onHome} title="Flashcards" />
+
+      <div className="filter-bar">
+        <span className="filter-label">Region:</span>
+        {REGIONS.map(r => (
+          <button
+            key={r}
+            className={`chip ${region === r ? 'chip-active' : ''}`}
+            onClick={() => setRegion(r)}
+          >{r}</button>
+        ))}
+      </div>
+
+      <div className="progress-row">
+        <div className="progress-text">{idx + 1} / {deck.length}</div>
+        <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
+        <div className="progress-text">{known.size} learned</div>
+      </div>
+
+      <div className="card-stage">
+        <div
+          className={`flashcard ${flipped ? 'flipped' : ''}`}
+          onClick={() => setFlipped(f => !f)}
+        >
+          <div className="flashcard-face flashcard-front">
+            <img src={flagUrl(current.code)} alt="flag" className="flag-img" />
+            <div className="card-hint">tap to reveal</div>
+          </div>
+          <div className="flashcard-face flashcard-back">
+            <div className="card-region">{current.region}</div>
+            <div className="card-country">{current.name}</div>
+            <div className="card-hint">tap to flip back</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="controls">
+        <button className="btn-ghost" onClick={prev}>← Prev</button>
+        <button className="btn-primary" onClick={markKnown}>✓ I knew it</button>
+        <button className="btn-ghost" onClick={next}>Next →</button>
+      </div>
+      <div className="controls-secondary">
+        <button className="link-btn" onClick={reshuffle}>↻ Reshuffle deck</button>
+      </div>
+    </div>
+  );
+}
+
+function Quiz({ onHome, region, setRegion }) {
+  const pool = useMemo(() =>
+    region === "All" ? COUNTRIES : COUNTRIES.filter(c => c.region === region),
+    [region]
+  );
+
+  const [question, setQuestion] = useState(null);
+  const [picked, setPicked] = useState(null);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [best, setBest] = useState(0);
+  const [total, setTotal] = useState(0);
+
+  const generate = () => {
+    const correct = pool[Math.floor(Math.random() * pool.length)];
+    const wrongPool = pool.filter(c => c.code !== correct.code);
+    const wrongs = shuffle(wrongPool).slice(0, 3);
+    const options = shuffle([correct, ...wrongs]);
+    setQuestion({ correct, options });
+    setPicked(null);
+  };
+
+  useEffect(() => { generate(); }, [pool]);
+
+  const pick = (opt) => {
+    if (picked) return;
+    setPicked(opt);
+    setTotal(t => t + 1);
+    if (opt.code === question.correct.code) {
+      setScore(s => s + 1);
+      setStreak(s => {
+        const ns = s + 1;
+        setBest(b => Math.max(b, ns));
+        return ns;
+      });
+    } else {
+      setStreak(0);
+    }
+    setTimeout(generate, 1100);
+  };
+
+  const reset = () => { setScore(0); setStreak(0); setBest(0); setTotal(0); generate(); };
+
+  if (!question) return null;
+
+  return (
+    <div className="mode-screen">
+      <TopBar onHome={onHome} title="Quick Quiz" />
+
+      <div className="filter-bar">
+        <span className="filter-label">Region:</span>
+        {REGIONS.map(r => (
+          <button
+            key={r}
+            className={`chip ${region === r ? 'chip-active' : ''}`}
+            onClick={() => setRegion(r)}
+          >{r}</button>
+        ))}
+      </div>
+
+      <div className="score-row">
+        <div className="score-stat">
+          <div className="score-num">{score}/{total}</div>
+          <div className="score-lbl">score</div>
+        </div>
+        <div className="score-stat score-stat-accent">
+          <div className="score-num">🔥 {streak}</div>
+          <div className="score-lbl">streak</div>
+        </div>
+        <div className="score-stat">
+          <div className="score-num">{best}</div>
+          <div className="score-lbl">best</div>
+        </div>
+        <button className="link-btn" onClick={reset}>reset</button>
+      </div>
+
+      <div className="quiz-stage">
+        <div className="quiz-flag-wrap">
+          <img src={flagUrl(question.correct.code)} alt="flag" className="quiz-flag" />
+        </div>
+        <div className="quiz-prompt">Which nation does this flag belong to?</div>
+        <div className="quiz-options">
+          {question.options.map(opt => {
+            let cls = "quiz-opt";
+            if (picked) {
+              if (opt.code === question.correct.code) cls += " quiz-opt-correct";
+              else if (opt.code === picked.code) cls += " quiz-opt-wrong";
+              else cls += " quiz-opt-dim";
+            }
+            return (
+              <button
+                key={opt.code}
+                className={cls}
+                onClick={() => pick(opt)}
+                disabled={!!picked}
+              >
+                {opt.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MapMode({ onHome, region, setRegion }) {
+  const pool = useMemo(() =>
+    region === "All" ? COUNTRIES : COUNTRIES.filter(c => c.region === region),
+    [region]
+  );
+
+  const [target, setTarget] = useState(null);
+  const [result, setResult] = useState(null);
+  const [score, setScore] = useState(0);
+  const [rounds, setRounds] = useState(0);
+  const [totalDist, setTotalDist] = useState(0);
+  const svgRef = useRef(null);
+
+  const newRound = () => {
+    const t = pool[Math.floor(Math.random() * pool.length)];
+    setTarget(t);
+    setResult(null);
+  };
+
+  useEffect(() => { newRound(); }, [pool]);
+
+  const handleMapClick = (e) => {
+    if (result || !target) return;
+    const svg = svgRef.current;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const cursor = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+    const targetPt = project(target.lat, target.lng);
+    const dx = cursor.x - targetPt.x;
+    const dy = cursor.y - targetPt.y;
+    const distSvg = Math.sqrt(dx * dx + dy * dy);
+    const distKm = Math.round(distSvg * 40);
+    const correct = distSvg < 35;
+
+    setResult({ distance: distKm, distSvg, correct, clickedPos: { x: cursor.x, y: cursor.y }, targetPos: targetPt });
+    setRounds(r => r + 1);
+    setTotalDist(d => d + distKm);
+    if (correct) setScore(s => s + 1);
+  };
+
+  const avgDist = rounds > 0 ? Math.round(totalDist / rounds) : 0;
+  const reset = () => { setScore(0); setRounds(0); setTotalDist(0); newRound(); };
+
+  if (!target) return null;
+
+  return (
+    <div className="mode-screen">
+      <TopBar onHome={onHome} title="World Map" />
+
+      <div className="filter-bar">
+        <span className="filter-label">Region:</span>
+        {REGIONS.map(r => (
+          <button
+            key={r}
+            className={`chip ${region === r ? 'chip-active' : ''}`}
+            onClick={() => setRegion(r)}
+          >{r}</button>
+        ))}
+      </div>
+
+      <div className="map-header">
+        <div className="map-prompt-card">
+          <div className="map-prompt-lbl">Place this flag:</div>
+          <img src={flagUrlSmall(target.code)} alt="flag" className="map-flag" />
+          <div className="map-prompt-name">{target.name}</div>
+        </div>
+        <div className="map-stats">
+          <div className="score-stat">
+            <div className="score-num">{score}/{rounds}</div>
+            <div className="score-lbl">hits</div>
+          </div>
+          <div className="score-stat">
+            <div className="score-num">{avgDist}<span className="unit">km</span></div>
+            <div className="score-lbl">avg miss</div>
+          </div>
+          <button className="link-btn" onClick={reset}>reset</button>
+        </div>
+      </div>
+
+      <div className="map-wrap">
+        <svg
+          ref={svgRef}
+          viewBox="0 0 1000 500"
+          className="world-map"
+          onClick={handleMapClick}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <rect width="1000" height="500" fill="var(--ocean)" />
+
+          <g className="grid-lines">
+            {[100, 200, 250, 300, 400].map(y => (
+              <line key={y} x1="0" y1={y} x2="1000" y2={y} stroke="var(--grid)" strokeWidth="0.3" />
+            ))}
+            {[200, 400, 500, 600, 800].map(x => (
+              <line key={x} x1={x} y1="0" x2={x} y2="500" stroke="var(--grid)" strokeWidth="0.3" />
+            ))}
+          </g>
+
+          <g className="land-masses">
+            <path d="M 130,90 L 180,75 L 250,85 L 290,110 L 280,150 L 250,175 L 240,210 L 200,225 L 175,215 L 155,180 L 140,160 L 120,140 L 115,110 Z" />
+            <path d="M 200,225 L 230,235 L 245,255 L 240,275 L 220,270 L 205,250 Z" />
+            <path d="M 260,285 L 295,275 L 320,290 L 335,320 L 330,360 L 315,395 L 295,415 L 275,400 L 270,360 L 265,320 Z" />
+            <path d="M 380,60 L 420,55 L 435,80 L 420,105 L 390,100 Z" />
+            <path d="M 460,110 L 510,100 L 545,115 L 555,140 L 530,160 L 495,165 L 470,150 L 458,130 Z" />
+            <path d="M 490,180 L 530,175 L 565,195 L 580,230 L 580,275 L 560,315 L 535,335 L 510,325 L 495,290 L 485,250 L 488,215 Z" />
+            <path d="M 555,165 L 590,170 L 610,195 L 600,215 L 580,210 L 565,190 Z" />
+            <path d="M 555,90 L 650,75 L 760,80 L 830,90 L 870,105 L 870,135 L 820,145 L 760,140 L 680,135 L 600,130 L 565,120 Z" />
+            <path d="M 700,150 L 770,145 L 810,160 L 825,185 L 800,205 L 770,210 L 735,200 L 710,180 Z" />
+            <path d="M 680,200 L 720,205 L 730,235 L 715,255 L 695,250 L 685,225 Z" />
+            <path d="M 770,225 L 810,225 L 825,250 L 815,275 L 790,275 L 775,255 Z" />
+            <path d="M 800,285 L 850,280 L 880,295 L 860,310 L 820,308 Z" />
+            <path d="M 855,250 L 875,250 L 880,270 L 860,272 Z" />
+            <path d="M 855,170 L 870,165 L 880,185 L 870,200 L 858,190 Z" />
+            <path d="M 815,355 L 880,350 L 910,370 L 905,395 L 870,405 L 830,400 L 815,380 Z" />
+            <path d="M 935,395 L 950,395 L 955,415 L 940,420 Z" />
+            <path d="M 50,470 L 950,470 L 950,495 L 50,495 Z" />
+            <path d="M 458,115 L 475,113 L 478,135 L 462,138 Z" />
+            <path d="M 590,295 L 600,290 L 605,315 L 595,320 Z" />
+          </g>
+
+          {result && (
+            <React.Fragment>
+              <circle cx={result.targetPos.x} cy={result.targetPos.y} r="8" fill="var(--correct)" opacity="0.3">
+                <animate attributeName="r" from="8" to="20" dur="1s" repeatCount="indefinite" />
+                <animate attributeName="opacity" from="0.5" to="0" dur="1s" repeatCount="indefinite" />
+              </circle>
+              <circle cx={result.targetPos.x} cy={result.targetPos.y} r="4" fill="var(--correct)" />
+              <line
+                x1={result.clickedPos.x}
+                y1={result.clickedPos.y}
+                x2={result.targetPos.x}
+                y2={result.targetPos.y}
+                stroke={result.correct ? "var(--correct)" : "var(--wrong)"}
+                strokeWidth="1.2"
+                strokeDasharray="3 3"
+              />
+              <circle
+                cx={result.clickedPos.x}
+                cy={result.clickedPos.y}
+                r="3"
+                fill={result.correct ? "var(--correct)" : "var(--wrong)"}
+              />
+            </React.Fragment>
+          )}
+        </svg>
+      </div>
+
+      {result && (
+        <div className={`map-result ${result.correct ? 'map-result-correct' : 'map-result-wrong'}`}>
+          <div className="map-result-msg">
+            {result.correct ? '✓ Right on it!' : '✗ Missed.'} <span className="map-result-dist">{result.distance.toLocaleString()} km off</span>
+          </div>
+          <button className="btn-primary" onClick={newRound}>Next flag →</button>
+        </div>
+      )}
+
+      <div className="map-help">Click anywhere on the map to place the flag.</div>
+    </div>
+  );
+}
+
+function TopBar({ onHome, title }) {
+  return (
+    <div className="topbar">
+      <button className="back-btn" onClick={onHome}>← Atlas</button>
+      <div className="topbar-title">{title}</div>
+      <div className="topbar-spacer" />
+    </div>
+  );
+}
+
+function App() {
+  const [mode, setMode] = useState('home');
+  const [region, setRegion] = useState('All');
+
+  useEffect(() => {
+    const boot = document.getElementById('boot');
+    if (boot) {
+      boot.classList.add('hidden');
+      setTimeout(() => boot.remove(), 500);
+    }
+  }, []);
+
+  return (
+    <div className="app-root">
+      {mode === 'home' && <Home onPick={setMode} />}
+      {mode === 'flashcard' && <Flashcards onHome={() => setMode('home')} region={region} setRegion={setRegion} />}
+      {mode === 'quiz' && <Quiz onHome={() => setMode('home')} region={region} setRegion={setRegion} />}
+      {mode === 'map' && <MapMode onHome={() => setMode('home')} region={region} setRegion={setRegion} />}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+
+</body>
+</html>
