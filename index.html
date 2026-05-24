@@ -563,17 +563,22 @@ html, body {
 .world-map { display: block; width: 100%; cursor: crosshair; }
 .land-masses path {
   fill: var(--land);
-  stroke: #4a4036;
-  stroke-width: 0.3;
+  stroke: #d4a93a;      /* warm gold — high contrast against dark land */
+  stroke-width: 1.4;    /* In screen pixels thanks to non-scaling-stroke below */
+  stroke-linejoin: round;
+  stroke-linecap: round;
   transition: fill 0.15s;
+  vector-effect: non-scaling-stroke;  /* keep stroke width constant on zoom */
 }
 .land-masses path.hover-hint:hover { fill: #2d2620; cursor: crosshair; }
 .land-masses path.target-flash {
   fill: var(--correct);
+  stroke: #f0c95a;
   animation: targetPulse 1.4s ease-out;
 }
 .land-masses path.clicked-wrong {
   fill: var(--wrong);
+  stroke: #f0c95a;
   animation: wrongFlash 0.6s ease-out;
 }
 @keyframes targetPulse {
@@ -586,14 +591,16 @@ html, body {
   100% { fill: var(--wrong); }
 }
 .country-dot {
-  fill: var(--land);
-  stroke: var(--ocean);
-  stroke-width: 0.4;
+  fill: var(--gold);          /* gold dot — clearly visible as a clickable target */
+  stroke: var(--ink);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
   transition: r 0.15s, fill 0.15s;
+  cursor: crosshair;
 }
-.country-dot:hover { fill: #2d2620; cursor: crosshair; }
-.country-dot.target-flash { fill: var(--correct); }
-.country-dot.clicked-wrong { fill: var(--wrong); }
+.country-dot:hover { fill: #f0c95a; stroke-width: 2; }
+.country-dot.target-flash { fill: var(--correct); stroke: #f0c95a; stroke-width: 2; }
+.country-dot.clicked-wrong { fill: var(--wrong); stroke: #f0c95a; stroke-width: 2; }
 .map-result {
   padding: 14px 20px;
   border: 1px solid var(--line);
@@ -1480,19 +1487,26 @@ function MapMode({ onHome, region, setRegion }) {
     if (result || !target) return;
     const cursor = clientToSvg(e.clientX, e.clientY);
 
-    let clickedCode = hitTest(cursor.x, cursor.y);
-    // Use scale-aware tap target for island dots: more generous when zoomed out
-    const zoomFactor = viewBox[2] / 1000;
-    const dotTapRadius = Math.max(3, 6 * zoomFactor);
+    // Dot tap radius scales with viewBox size so it stays ~12 screen pixels
+    // regardless of zoom level. (viewBox width / 1000) gives us SVG-units-per-screen-px ratio.
+    const svgUnitsPerPixel = viewBox[2] / 1000;  // approximate
+    const dotTapRadius = 14 * svgUnitsPerPixel;
+
+    // PRIORITY 1: Check microstate dots first. They're tiny visual targets that the user
+    // is specifically aiming at, so they should win even if the cursor is also over a
+    // neighboring country's polygon (e.g., Monaco vs France, Vatican vs Italy).
+    let clickedCode = null;
+    let bestDotDist = dotTapRadius;
+    for (const c of COUNTRIES) {
+      if (HAS_BORDER.has(c.code)) continue;
+      const p = project(c.lat, c.lng);
+      const d = Math.hypot(p.x - cursor.x, p.y - cursor.y);
+      if (d < bestDotDist) { bestDotDist = d; clickedCode = c.code; }
+    }
+
+    // PRIORITY 2: If no dot was tapped, fall back to country polygon hit-testing.
     if (!clickedCode) {
-      let bestDot = null, bestDotDist = dotTapRadius;
-      for (const c of COUNTRIES) {
-        if (HAS_BORDER.has(c.code)) continue;
-        const p = project(c.lat, c.lng);
-        const d = Math.hypot(p.x - cursor.x, p.y - cursor.y);
-        if (d < bestDotDist) { bestDotDist = d; bestDot = c.code; }
-      }
-      if (bestDot) clickedCode = bestDot;
+      clickedCode = hitTest(cursor.x, cursor.y);
     }
 
     const correct = clickedCode === target.code;
@@ -1553,9 +1567,13 @@ function MapMode({ onHome, region, setRegion }) {
 
   const targetPos = project(target.lat, target.lng);
   const zoomPercent = Math.round(1000 / viewBox[2] * 100);
-  // Stroke and marker sizes scale inversely with zoom so they stay visually consistent
-  const zoomScale = viewBox[2] / 1000;
-  const borderStroke = Math.max(0.15, 0.3 * zoomScale);
+  // Marker sizes are in SVG units. With vector-effect: non-scaling-stroke on land paths
+  // and country-dot, stroke widths stay constant on screen. We DO want dots and result
+  // markers to scale inversely with zoom so they stay roughly the same screen size.
+  const svgUnitsPerPixel = viewBox[2] / 1000;
+  const dotRadius = 3 * svgUnitsPerPixel;   // ~3 screen pixels regardless of zoom
+  const targetMarkerR = 6 * svgUnitsPerPixel;
+  const targetMarkerStroke = 1.5 * svgUnitsPerPixel;
 
   return (
     <div className="mode-screen">
@@ -1613,14 +1631,14 @@ function MapMode({ onHome, region, setRegion }) {
 
           <g className="grid-lines">
             {[125, 250, 375].map(y => (
-              <line key={y} x1="0" y1={y} x2="1000" y2={y} stroke="var(--grid)" strokeWidth={borderStroke} strokeDasharray="2 4" />
+              <line key={y} x1="0" y1={y} x2="1000" y2={y} stroke="var(--grid)" strokeWidth="0.5" strokeDasharray="2 4" vectorEffect="non-scaling-stroke" />
             ))}
             {[250, 500, 750].map(x => (
-              <line key={x} x1={x} y1="0" x2={x} y2="500" stroke="var(--grid)" strokeWidth={borderStroke} strokeDasharray="2 4" />
+              <line key={x} x1={x} y1="0" x2={x} y2="500" stroke="var(--grid)" strokeWidth="0.5" strokeDasharray="2 4" vectorEffect="non-scaling-stroke" />
             ))}
           </g>
 
-          <g className="land-masses" style={{ '--stroke-w': borderStroke }}>
+          <g className="land-masses">
             {Object.entries(COUNTRY_PATHS).map(([code, d]) => {
               let cls = result ? '' : 'hover-hint';
               if (result) {
@@ -1634,7 +1652,6 @@ function MapMode({ onHome, region, setRegion }) {
                   d={d}
                   className={cls}
                   data-code={code}
-                  style={{ strokeWidth: borderStroke }}
                 />
               );
             })}
@@ -1648,16 +1665,15 @@ function MapMode({ onHome, region, setRegion }) {
                 if (c.code === target.code) cls += ' target-flash';
                 else if (!result.correct && c.code === result.clickedCode) cls += ' clicked-wrong';
               }
-              const dotR = Math.max(1.2, 2 * zoomScale);
+              const isTarget = c.code === target.code && result;
               return (
                 <circle
                   key={c.code}
                   cx={p.x}
                   cy={p.y}
-                  r={c.code === target.code && result ? dotR * 1.6 : dotR}
+                  r={isTarget ? dotRadius * 1.8 : dotRadius}
                   className={cls}
                   data-code={c.code}
-                  style={{ strokeWidth: borderStroke * 1.3 }}
                 />
               );
             })}
@@ -1665,8 +1681,8 @@ function MapMode({ onHome, region, setRegion }) {
 
           {result && (
             <React.Fragment>
-              <circle cx={targetPos.x} cy={targetPos.y} r={5 * zoomScale} fill="none" stroke="var(--gold)" strokeWidth={1.5 * zoomScale}>
-                <animate attributeName="r" from={3 * zoomScale} to={20 * zoomScale} dur="1.4s" repeatCount="indefinite" />
+              <circle cx={targetPos.x} cy={targetPos.y} r={targetMarkerR} fill="none" stroke="var(--gold)" strokeWidth={targetMarkerStroke}>
+                <animate attributeName="r" from={targetMarkerR * 0.6} to={targetMarkerR * 4} dur="1.4s" repeatCount="indefinite" />
                 <animate attributeName="opacity" from="1" to="0" dur="1.4s" repeatCount="indefinite" />
               </circle>
               {!result.correct && (
@@ -1676,9 +1692,10 @@ function MapMode({ onHome, region, setRegion }) {
                   x2={targetPos.x}
                   y2={targetPos.y}
                   stroke="var(--wrong)"
-                  strokeWidth={1 * zoomScale}
-                  strokeDasharray={`${3*zoomScale} ${3*zoomScale}`}
-                  opacity="0.7"
+                  strokeWidth="1.5"
+                  strokeDasharray="4 4"
+                  opacity="0.75"
+                  vectorEffect="non-scaling-stroke"
                 />
               )}
             </React.Fragment>
