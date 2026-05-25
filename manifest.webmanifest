@@ -1,0 +1,93 @@
+{
+  "name": "Learn Flags — Atlas Project",
+  "short_name": "Learn Flags",
+  "description": "Learn the national flags of all 197 sovereign nations through flashcards, quizzes, and an interactive world map.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4efe6",
+  "theme_color": "#1a1612",
+  "lang": "en-US",
+  "categories": ["education", "games"],
+  "icons": [
+    {
+      "src": "icons/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/screen-1-home.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Choose from four ways to learn"
+    },
+    {
+      "src": "screenshots/screen-2-flashcard.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Flip a flashcard to reveal the country and a paragraph on the flag's design"
+    },
+    {
+      "src": "screenshots/screen-3-map.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Cartographer mode — place flags blind for double points"
+    },
+    {
+      "src": "screenshots/screen-wide-1-home.png",
+      "sizes": "1600x900",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Home screen — four learning modes"
+    }
+  ]
+}
