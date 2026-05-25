@@ -1,0 +1,40 @@
+{
+  "packageId": "io.github.jefrix.learnflags",
+  "host": "jefrix.github.io",
+  "name": "Learn Flags — Atlas Project",
+  "launcherName": "Learn Flags",
+  "display": "standalone",
+  "themeColor": "#1a1612",
+  "themeColorDark": "#1a1612",
+  "navigationColor": "#1a1612",
+  "navigationColorDark": "#1a1612",
+  "navigationDividerColor": "#1a1612",
+  "navigationDividerColorDark": "#1a1612",
+  "backgroundColor": "#f4efe6",
+  "enableNotifications": false,
+  "startUrl": "/learnflags/index.html",
+  "iconUrl": "https://jefrix.github.io/learnflags/icons/icon-512.png",
+  "maskableIconUrl": "https://jefrix.github.io/learnflags/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://jefrix.github.io/learnflags/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": { "enabled": false },
+    "playBilling": { "enabled": false }
+  },
+  "alphaDependencies": { "enabled": false },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://jefrix.github.io/learnflags/",
+  "minSdkVersion": 23,
+  "orientation": "any",
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  }
+}
